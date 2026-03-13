@@ -8,11 +8,20 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 
 ---
 
+![Poster Image](assets/readme-image-1.png)
+
+---
+
 ## What is this?
 
 CYD Jukebox turns a [Cheap Yellow Display](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display) into a always-on, wall-mounted music controller for any `media_player` entity in Home Assistant. No app, no phone, no voice commands — just a physical button on your wall.
 
 It's cheap, open, and built entirely on ESPHome. Works with any HA media player out of the box, and pairs especially well with [Music Assistant](https://music-assistant.io/).
+
+---
+
+![Poster Image 2](assets/readme-image-2.png)
+
 
 ---
 
