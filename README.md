@@ -1,6 +1,6 @@
 # CYD Jukebox
 
-A physical music controller for your Home Assistant smart home — built on a ~12€ ESP32 display. Stick it on the wall, tap to play.
+A physical music controller for your Home Assistant smart home — built on a ~12€ ESP32 display, the infamous Cheap Yellow Display. Stick it on the wall, tap to play.
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![ESPHome](https://img.shields.io/badge/built%20with-ESPHome-informational)
@@ -22,13 +22,13 @@ It's cheap, open, and built entirely on ESPHome. Works with any HA media player 
 
 ## Features
 
-- **Album art** — displays the current song's cover art, updated automatically
-- **Playback controls** — play/pause, skip, stop
+- **Album art** — displays the current song's cover art in a cozy pixel art style (because more pixels would not fit into the ram)
+- **Playback controls** — only what you really need. play/pause, skip, stop
 - **Volume control** — tap the volume button to reveal a slider
-- **Quick-play buttons** — two configurable shortcuts to instantly start a favourite playlist
-- **Playlist browser** — a scrollable page with all your playlists
-- **State sync** — reflects changes made from any other device in real time
-- **Auto-dim & sleep** — dims after a short idle period; turns off completely when the player is inactive. A tap wakes everything back up
+- **Quick-play buttons** — have the best at your fingertips: Two configurable shortcuts to instantly start a favourite playlist
+- **Playlist browser** — a fine selection: Open a scrollable page with  playlists defined by you
+- **State sync** — surprisingly responsive: Reflects changes made from any other device in real time
+- **Auto-dim & sleep** — designed to not annoy you. Dims after a short idle period; turns off completely when the player is inactive. A tap wakes everything back up
 - **Burn-in prevention** — runs pixel training automatically during the night so your display stays healthy
 
 ---
@@ -113,7 +113,7 @@ Things actively being worked on or planned:
 
 ## Contributing
 
-PRs, issues, suggestions, and case designs are all welcome. If you build one, show it off.
+**PRs, issues, suggestions, and case designs are all welcome. If you build one, show it off.**
 
 ---
 
