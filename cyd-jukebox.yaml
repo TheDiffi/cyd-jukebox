@@ -1,16 +1,5 @@
-substitutions:
-  # ── Configuration ─────────────────────────────────────────────────────────
-  # Your Home Assistant media player entity ID (the Music Assistant player).
-  # Find it in HA → Settings → Devices & Services → Entities.
-  media_player_entity: media_player.your_player
-
-  # Your Home Assistant base URL. Default port is 8123.
-  ha_url: "http://homeassistant.local:8123"
-
-  # Device name used for ESPHome and HA discovery.
-  device_name: cyd-jukebox
-  friendly_name: "CYD Jukebox"
-  # ──────────────────────────────────────────────────────────────────────────
+packages:
+  config: !include config.yaml
 
 esphome:
   name: "${device_name}"

@@ -74,6 +74,7 @@ cyd-jukebox/
 ├── cyd-jukebox.yaml              # Main ESPHome config — start here
 ├── cyd-playlists-page.yaml       # Playlist browser UI (included by main config)
 ├── cyd-gradient-overlay.yaml     # Gradient overlay widget (included by main config)
+├── config.yaml.example           # Template for your personal config — copy to config.yaml
 ├── secrets.yaml.example          # Template for your secrets file
 ├── fonts/
 │   ├── MemoryIcons-Regular.otf   # Pixel icon font (Apache 2.0)
@@ -91,8 +92,8 @@ cyd-jukebox/
 
 **Short version:**
 
-1. Copy `secrets.yaml.example` → `secrets.yaml` and fill in your credentials
-2. Edit `cyd-jukebox.yaml` — set your `media_player` entity, HA URL, and any playlists
+1. Copy `config.yaml.example` → `config.yaml` and fill in your `media_player` entity and HA URL
+2. Copy `secrets.yaml.example` → `secrets.yaml` and fill in your credentials and secrets
 3. Flash the config to your CYD via ESPHome
 4. Add the device in Home Assistant and allow it to perform actions
 5. Set up the AppDaemon app for album art (see `appdeamon/`)
@@ -108,6 +109,7 @@ Things actively being worked on or planned:
 - **Custom case design** — a purpose-built retro case to be published on Printables
 - **Landscape orientation** support
 - **Dynamic media browsing** — replace the static playlist page with live browsing
+- Loading UI While Connecting to Wifi
 
 ---
 
