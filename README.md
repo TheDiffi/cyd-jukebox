@@ -8,7 +8,7 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 
 ---
 
-![Poster Image](assets/readme-image-1.png)
+![CYD Jukebox mounted on a wall](assets/readme-image-1.jpg)
 
 ---
 
@@ -17,11 +17,6 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 CYD Jukebox turns a [Cheap Yellow Display](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display) into a always-on, wall-mounted music controller for any `media_player` entity in Home Assistant. No app, no phone, no voice commands — just a physical button on your wall.
 
 It's cheap, open, and built entirely on ESPHome. Works with any HA media player out of the box, and pairs especially well with [Music Assistant](https://music-assistant.io/).
-
----
-
-![Poster Image 2](assets/readme-image-2.png)
-
 
 ---
 
@@ -35,6 +30,10 @@ It's cheap, open, and built entirely on ESPHome. Works with any HA media player 
 - **State sync** — reflects changes made from any other device in real time
 - **Auto-dim & sleep** — dims after a short idle period; turns off completely when the player is inactive. A tap wakes everything back up
 - **Burn-in prevention** — runs pixel training automatically during the night so your display stays healthy
+
+---
+
+![CYD Jukebox UI showing album art and controls](assets/readme-image-2.jpg)
 
 ---
 
@@ -91,6 +90,7 @@ cyd-jukebox/
 > Full step-by-step guide coming soon.
 
 **Short version:**
+
 1. Copy `secrets.yaml.example` → `secrets.yaml` and fill in your credentials
 2. Edit `cyd-jukebox.yaml` — set your `media_player` entity, HA URL, and any playlists
 3. Flash the config to your CYD via ESPHome
