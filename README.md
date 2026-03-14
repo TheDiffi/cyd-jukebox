@@ -6,6 +6,8 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 ![ESPHome](https://img.shields.io/badge/built%20with-ESPHome-informational)
 ![Platform: ESP32](https://img.shields.io/badge/platform-ESP32-green)
 
+**[→ Installation Guide](Installation-Guide.md)**
+
 ---
 
 ![CYD Jukebox mounted on a wall](assets/readme-image-1.png)
@@ -89,9 +91,9 @@ cyd-jukebox/
 
 ## Setup
 
-> Full step-by-step guide coming soon.
+**[→ Full Installation Guide](Installation-Guide.md)**
 
-**Short version:**
+**Quick start:**
 
 1. Copy `esphome/config.yaml.example` → `esphome/config.yaml` and fill in your `media_player` entity and HA URL
 2. Copy `esphome/secrets.yaml.example` → `esphome/secrets.yaml` and fill in your credentials and secrets
