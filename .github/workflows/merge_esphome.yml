@@ -3,8 +3,7 @@ name: Merge ESPHome YAML
 on:
   push:
     branches: [master]
-    paths:
-      - 'esphome/**/*.yaml'
+  
 
 jobs:
   merge:
