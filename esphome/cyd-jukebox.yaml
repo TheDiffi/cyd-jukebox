@@ -16,6 +16,9 @@ esp32:
     advanced:
       minimum_chip_revision: "3.1"
 
+# Enable psram if available 
+psram:
+
 logger:
 #  level: INFO
 
@@ -619,8 +622,8 @@ lvgl:
             on_click:
               - script.execute:
                   id: select_playlist
-                  popup_text: "My Playlist 1" # change to your playlist name
-                  media_id: "library://playlist/1" # change to your playlist ID
+                  popup_text: "Chill" # change to your playlist name
+                  media_id: ${quickplay_button_chill_playlist_id} 
             widgets:
               - label:
                   text: "󰊇"
@@ -639,8 +642,8 @@ lvgl:
             on_click:
               - script.execute:
                   id: select_playlist
-                  popup_text: "My Playlist 2" # change to your playlist name
-                  media_id: "library://playlist/2" # change to your playlist ID
+                  popup_text: "Pop" # change to your playlist name
+                  media_id: ${quickplay_button_pop_playlist_id}
             widgets:
               - label:
                   text: "󰃦"

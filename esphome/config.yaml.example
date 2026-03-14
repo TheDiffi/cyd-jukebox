@@ -11,4 +11,9 @@ substitutions:
   # Device name used for ESPHome and HA discovery.
   device_name: cyd-jukebox
   friendly_name: "CYD Jukebox"
+
+  # Quickplay Buttons
+  # Follow the instructions in the cyd-playlists-page.yaml to get a playlist ID and set it here
+  quickplay_button_chill_playlist_id: "library://playlist/15"
+  quickplay_button_pop_playlist_name_id: "library://playlist/16"
   # ──────────────────────────────────────────────────────────────────────────
