@@ -71,14 +71,15 @@ For mounting, a wall mount is recommended. Double-sided tape works fine. The com
 
 ```
 cyd-jukebox/
-├── cyd-jukebox.yaml              # Main ESPHome config — start here
-├── cyd-playlists-page.yaml       # Playlist browser UI (included by main config)
-├── cyd-gradient-overlay.yaml     # Gradient overlay widget (included by main config)
-├── config.yaml.example           # Template for your personal config — copy to config.yaml
-├── secrets.yaml.example          # Template for your secrets file
-├── fonts/
-│   ├── MemoryIcons-Regular.otf   # Pixel icon font (Apache 2.0)
-│   └── LICENSE
+├── esphome/
+│   ├── cyd-jukebox.yaml              # Main ESPHome config — start here
+│   ├── cyd-playlists-page.yaml       # Playlist browser UI (included by main config)
+│   ├── cyd-gradient-overlay.yaml     # Gradient overlay widget (included by main config)
+│   ├── config.yaml.example           # Template for your personal config — copy to config.yaml
+│   ├── secrets.yaml.example          # Template for your secrets file
+│   └── fonts/
+│       ├── MemoryIcons-Regular.otf   # Pixel icon font (Apache 2.0)
+│       └── LICENSE
 └── appdeamon/
     ├── cyd-jukebox-album-art-generator.py   # AppDaemon app — fetches & processes album art
     └── apps.py                              # AppDaemon config template
@@ -92,9 +93,9 @@ cyd-jukebox/
 
 **Short version:**
 
-1. Copy `config.yaml.example` → `config.yaml` and fill in your `media_player` entity and HA URL
-2. Copy `secrets.yaml.example` → `secrets.yaml` and fill in your credentials and secrets
-3. Flash the config to your CYD via ESPHome
+1. Copy `esphome/config.yaml.example` → `esphome/config.yaml` and fill in your `media_player` entity and HA URL
+2. Copy `esphome/secrets.yaml.example` → `esphome/secrets.yaml` and fill in your credentials and secrets
+3. Flash `esphome/cyd-jukebox.yaml` to your CYD via ESPHome
 4. Add the device in Home Assistant and allow it to perform actions
 5. Set up the AppDaemon app for album art (see `appdeamon/`)
 
@@ -123,4 +124,4 @@ Things actively being worked on or planned:
 
 CYD Jukebox is MIT licensed — see [LICENSE](LICENSE).
 
-Uses [MemoryIcons](https://pictogrammers.com) by Pictogrammers, licensed under [Apache License 2.0](fonts/LICENSE).
+Uses [MemoryIcons](https://pictogrammers.com) by Pictogrammers, licensed under [Apache License 2.0](esphome/fonts/LICENSE).

@@ -5,6 +5,7 @@ substitutions:
   media_player_entity: media_player.your_player
 
   # Your Home Assistant base URL. Default port is 8123.
+  # If you are unsure, just open up homeassistant in a browser and copy it from there.
   ha_url: "http://homeassistant.local:8123"
 
   # Device name used for ESPHome and HA discovery.

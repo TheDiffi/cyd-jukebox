@@ -1,0 +1,39 @@
+name: Merge ESPHome YAML
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '*.yaml'
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Prepare config
+        run: cp esphome/config.yaml.example esphome/config.yaml
+
+      - name: Merge ESPHome YAML
+        run: python .github/scripts/merge_esphome.py esphome/cyd-jukebox.yaml esphome/cyd-jukebox-FULL.yaml
+
+      - name: Commit merged file
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cyd-jukebox-FULL.yaml
+          git diff --staged --quiet || \
+            git commit -m "chore: auto-merge ESPHome YAML [skip ci]" && git push

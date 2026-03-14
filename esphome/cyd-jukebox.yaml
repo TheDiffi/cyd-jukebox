@@ -1,3 +1,5 @@
+# If you are using ESPHome Device Builder, use the cyd-jukebox-FULL.yaml file and make sure 
+# the "susbtitutions" secttion contains your values and not the example ones. 
 packages:
   config: !include config.yaml
 
