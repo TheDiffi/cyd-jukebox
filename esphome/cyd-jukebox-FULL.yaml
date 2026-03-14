@@ -3,6 +3,8 @@ substitutions:
   ha_url: http://homeassistant.local:8123
   device_name: cyd-jukebox
   friendly_name: CYD Jukebox
+  quickplay_button_chill_playlist_id: library://playlist/15
+  quickplay_button_pop_playlist_name_id: library://playlist/16
 esphome:
   name: "${device_name}"
   friendly_name: "${friendly_name}"
@@ -14,6 +16,7 @@ esp32:
     type: esp-idf
     advanced:
       minimum_chip_revision: '3.1'
+psram: null
 logger: null
 api:
   encryption:
@@ -662,8 +665,8 @@ lvgl:
         on_click:
         - script.execute:
             id: select_playlist
-            popup_text: My Playlist 1
-            media_id: library://playlist/1
+            popup_text: Chill
+            media_id: "${quickplay_button_chill_playlist_id}"
         widgets:
         - label:
             text: "\U000F0287"
@@ -681,8 +684,8 @@ lvgl:
         on_click:
         - script.execute:
             id: select_playlist
-            popup_text: My Playlist 2
-            media_id: library://playlist/2
+            popup_text: Pop
+            media_id: "${quickplay_button_pop_playlist_id}"
         widgets:
         - label:
             text: "\U000F00E6"
