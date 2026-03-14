@@ -91,9 +91,11 @@ cyd-jukebox/
 
 ## Setup
 
-**[→ Full Installation Guide](Installation-Guide.md)**
+[Installation Guide (WIP)](Installation-Guide.md)
 
-**Quick start:**
+> Full step-by-step guide coming soon.
+
+**Short version:**
 
 1. Copy `esphome/config.yaml.example` → `esphome/config.yaml` and fill in your `media_player` entity and HA URL
 2. Copy `esphome/secrets.yaml.example` → `esphome/secrets.yaml` and fill in your credentials and secrets

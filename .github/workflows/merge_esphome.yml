@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
     paths:
-      - '*.yaml'
+      - 'esphome/**/*.yaml'
 
 jobs:
   merge:
@@ -21,14 +21,27 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install PyYAML
-        run: pip install pyyaml
+      - name: Install dependencies
+        run: pip install pyyaml esphome
 
       - name: Prepare config
         run: cp esphome/config.yaml.example esphome/config.yaml
 
       - name: Merge ESPHome YAML
         run: python .github/scripts/merge_esphome.py esphome/cyd-jukebox.yaml esphome/cyd-jukebox-FULL.yaml
+
+      - name: Create test secrets
+        run: |
+          cat > esphome/secrets.yaml << 'EOF'
+          wifi_ssid: "test_network"
+          wifi_password: "test_password"
+          api_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          ota_password: "test_password"
+          ha_token: "Bearer test_token"
+          EOF
+
+      - name: Validate ESPHome config
+        run: esphome config esphome/cyd-jukebox-FULL.yaml
 
       - name: Commit merged file
         run: |
