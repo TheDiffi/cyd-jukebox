@@ -10,7 +10,7 @@ class CydJukeboxAlbumArtGenerator(hass.Hass):
     def initialize(self):
         self.entity = self.args.get("media_player")
         self.base_url = self.args.get("base_url", "")
-        self.output_file = self.args.get("output_file", "media_thumb.jpg")
+        self.output_file = "media_thumb.jpg"
         self.output_path = f"/homeassistant/www/{self.entity}-{self.output_file}"
 
         if not self.entity:
