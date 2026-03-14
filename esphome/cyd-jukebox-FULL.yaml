@@ -1,8 +1,8 @@
 substitutions:
-  ha_url: http://homeassistant.local:8124
-  media_player_entity: media_player.klavier_player
-  device_name: cyd-jukebox-klavier
-  friendly_name: CYDJukebox Klavier
+  media_player_entity: media_player.your_player
+  ha_url: http://homeassistant.local:8123
+  device_name: cyd-jukebox
+  friendly_name: CYD Jukebox
 esphome:
   name: "${device_name}"
   friendly_name: "${friendly_name}"
