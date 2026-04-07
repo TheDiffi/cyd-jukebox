@@ -35,7 +35,7 @@ It's cheap, open, and built entirely on ESPHome. Works with any HA media player 
 
 ---
 
-![CYD Jukebox UI showing album art and controls](assets/readme-image-1.png)
+![CYD Jukebox UI showing album art and controls](assets/readme-image-2.png)
 
 ---
 
