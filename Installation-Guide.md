@@ -55,7 +55,7 @@ Done. Easy as cake.
 
 #### Method 2: ESPHome Device Builder
 
-> **Before continuing:** You'll need to copy the config values from `esphome/config.yaml` into `esphome/cyd-jukebox-FULL.yaml` manually. At the top of that file there is a `substitutions` section — replace it with the one from your `config.yaml`. This ensures you're using your own values, not the example placeholders.
+⚠️ **Before continuing:** You'll need to copy the config values from `esphome/config.yaml` into `esphome/cyd-jukebox-FULL.yaml` manually. At the top of that file there is a `substitutions` section — replace it with the one from your `config.yaml`. This ensures you're using your own values, not the example placeholders. ⚠️
 
 [Set up the ESPHome Device Builder add-on](https://esphome.io/guides/getting_started_hassio/), then:
 
