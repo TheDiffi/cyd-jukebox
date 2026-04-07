@@ -10,7 +10,7 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 
 ---
 
-![CYD Jukebox mounted on a wall](assets/readme-image-1.png)
+![CYD Jukebox mounted on a wall](assets/cyd-jukebox-cover-image-1.jpeg)
 
 ---
 
@@ -35,7 +35,7 @@ It's cheap, open, and built entirely on ESPHome. Works with any HA media player 
 
 ---
 
-![CYD Jukebox UI showing album art and controls](assets/readme-image-2.jpg)
+![CYD Jukebox UI showing album art and controls](assets/readme-image-1.png)
 
 ---
 
