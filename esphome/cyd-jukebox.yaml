@@ -15,6 +15,7 @@ esp32:
     type: esp-idf
     advanced:
       minimum_chip_revision: "3.1"
+      sram1_as_iram: true
 
 # Enable psram if available 
 psram:
@@ -369,11 +370,12 @@ online_image:
 
 # Config for rotation:
 #  vertical portrait (USB at bottom):
-#    rotation: 90
-#    touchscreen transform: swap_xy: false, mirror_x: true, mirror_y: false
+#    rotation: 90 (lvgl below)
+#    touchscreen transform: swap_xy: true, mirror_x: true, mirror_y: true
 #  vertical portrait (USB at top):
-#    rotation: 270
-#    touchscreen transform: swap_xy: false, mirror_x: false, mirror_y: true
+#    rotation: 270 (lvgl below)
+#    touchscreen transform: swap_xy: true, mirror_x: false, mirror_y: true
+# horizontal landscape (USB on right): WIP
 
 color:
   - id: COLOR_WHITE
@@ -394,7 +396,7 @@ display:
     cs_pin: GPIO15
     dc_pin: GPIO2
     invert_colors: false
-    rotation: 90
+    # rotation: 90
     dimensions:
       width: 320
       height: 240
@@ -411,9 +413,9 @@ touchscreen:
     y_min: 324
     y_max: 3757
   transform:
-    swap_xy: false
+    swap_xy: True
     mirror_x: true
-    mirror_y: false
+    mirror_y: true
   on_touch:
     - script.execute: idle_dim_timer
     - if:
@@ -456,6 +458,7 @@ lvgl:
 
   buffer_size: 10%
   color_depth: 16 # recommended with ili9xxx and images
+  rotation: 90
 
   theme:
     label:
@@ -496,7 +499,8 @@ lvgl:
             src: mp_album_art
             zoom: 4.0
             antialias: false
-            mode: REAL # widget bounds match the scaled size
+            
+            #mode: REAL # widget bounds match the scaled size
 
         # ── Gradient overlay ───────────────────────────────────────────────
         - !include cyd-gradient-overlay.yaml
