@@ -8,6 +8,14 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 
 **[→ Installation Guide](Installation-Guide.md)**
 
+> **⚠️ Important ESPHome Version Limitation**  
+> ESPHome 2026.4.0 upgraded to LVGL 9, which currently has a bug affecting image scaling and zooming. Until this is resolved, this project must be built using **ESPHome 2026.3.0 or older**.
+> 
+> If you have a newer version installed locally, you can easily build the project using Docker:
+> ```bash
+> docker run --rm -v "${PWD}":/config --network host -it ghcr.io/esphome/esphome:2026.3.0 run esphome/cyd-jukebox.yaml
+> ```
+
 ---
 
 ![CYD Jukebox mounted on a wall](assets/cyd-jukebox-cover-image-1.jpeg)
