@@ -820,12 +820,12 @@ lvgl:
             on_click:
             - script.execute:
                 id: select_playlist
-                popup_text: Kota Vol.1
-                media_id: library://album/521
+                popup_text: My Playlist 1
+                media_id: library://playlist/YOUR_ID
             - lvgl.page.show: canvas_1
             widgets:
             - label:
-                text: Kota Vol.1
+                text: My Playlist 1
                 text_font: font_small
                 align: LEFT_MID
         - button:
@@ -834,124 +834,13 @@ lvgl:
             on_click:
             - script.execute:
                 id: select_playlist
-                popup_text: Acoustic Love
-                media_id: library://playlist/167
+                popup_text: My Playlist 2
+                media_id: library://playlist/YOUR_ID
             - lvgl.page.show: canvas_1
             widgets:
             - label:
-                text: Acoustic Love
+                text: My Playlist 2
                 text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Energy
-                media_id: library://playlist/65
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Energy
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Electroswing
-                media_id: library://playlist/64
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Electroswing
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Jazz
-                media_id: library://playlist/128
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Jazz for Autumn
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Arcane
-                media_id: library://album/53
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Arcane
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: The Best Of 80's
-                media_id: library://playlist/166
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: The Best Of 80's
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Arcturian healing
-                media_id: library://playlist/168
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Arcturian healing
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            on_click:
-            - script.execute:
-                id: select_playlist
-                popup_text: Healing Frequencies
-                media_id: library://album/731
-            - lvgl.page.show: canvas_1
-            widgets:
-            - label:
-                text: Healing Frequencies
-                text_font: font_small
-                align: LEFT_MID
-        - button:
-            width: 100%
-            height: 44
-            bg_opa: TRANSP
-            border_width: 0
-            widgets:
-            - label:
-                text: your playlist could be here
-                text_font: font_small
-                text_color: 5592405
-                width: 100%
-                long_mode: WRAP
                 align: LEFT_MID
   - id: canvas_idle
     bg_color: 0
