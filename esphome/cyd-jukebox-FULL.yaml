@@ -279,6 +279,13 @@ text_sensor:
           format: '%s'
           args:
           - "(x == \"playing\") ? \"\U000F0134\" : \"\U000F0135\""
+    - if:
+        condition:
+          lambda: return x == "unavailable" || x == "unknown" || x.empty();
+        then:
+        - lvgl.widget.show: lv_player_not_found_msg
+        else:
+        - lvgl.widget.hide: lv_player_not_found_msg
 - platform: homeassistant
   id: mp_title
   name: Player Title
@@ -866,3 +873,13 @@ lvgl:
             text: "\U000F0135"
             text_font: pixel_icon_font_huge
             align: CENTER
+    - label:
+        id: lv_player_not_found_msg
+        align: CENTER
+        y: 65
+        width: 200
+        text_align: CENTER
+        long_mode: WRAP
+        text: Music player not found
+        text_font: font_small
+        hidden: true
