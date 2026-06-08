@@ -18,7 +18,7 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 
 ---
 
-![CYD Jukebox mounted on a wall](assets/cyd-jukebox-cover-image-1.jpeg)
+![CYD Jukebox mounted on a wall](assets/pixil-frame.png)
 
 ---
 
