@@ -13,7 +13,7 @@ A physical music controller for your Home Assistant smart home — built on a ~1
 > 
 > If you have a newer version installed locally, you can easily build the project using Docker:
 > ```bash
-> docker run --rm -v "${PWD}":/config --network host -it ghcr.io/esphome/esphome:2026.3.0 run esphome/cyd-jukebox.yaml
+> docker run --rm -v "${PWD}":/config --network host -it ghcr.io/esphome/esphome:2026.3.0 run esphome/cyd-jukebox.yaml --device <device ip>
 > ```
 
 ---
