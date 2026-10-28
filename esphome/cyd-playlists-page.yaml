@@ -17,15 +17,17 @@ widgets:
       widgets:
         - button:
             id: btn_playlist_back
-            width: 40
+            width: 44
+            height: 44
+            pad_all: 0
             bg_opa: TRANSP
             border_width: 0
             on_click:
               - lvgl.page.show: canvas_1
             widgets:
-              - label:
-                  text: "󰈙"
-                  text_font: pixel_icon_font
+              - image:
+                  src: icon_arrow_left_box
+                  styles: icon_bright
                   align: CENTER
         - label:
             text: "Playlists"

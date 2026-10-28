@@ -7,3 +7,6 @@ cyd-playlists-page-my.yaml
 
 config.yaml
 /.venv/
+
+__pycache__/
+.DS_Store

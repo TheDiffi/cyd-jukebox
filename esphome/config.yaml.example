@@ -15,5 +15,9 @@ substitutions:
   # Quickplay Buttons
   # Follow the instructions in the cyd-playlists-page.yaml to get a playlist ID and set it here
   quickplay_button_chill_playlist_id: "library://playlist/15"
-  quickplay_button_pop_playlist_name_id: "library://playlist/16"
+  quickplay_button_pop_playlist_id: "library://playlist/16"
+
+  # Camera that shows the player's artwork (a Generic Camera whose still image URL
+  # is the player's entity_picture). See the Installation Guide.
+  cover_camera_entity: camera.your_player_cover
   # ──────────────────────────────────────────────────────────────────────────

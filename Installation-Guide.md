@@ -1,8 +1,6 @@
 # Installation
 
-There are two essential steps to get this working: **Configuring and flashing ESPHome** and **Setting up AppDaemon** to generate a scaled-down version of the song thumbnail for the cyd-jukebox. This is needed because the ESP on the CYD does not have enough RAM for the full-scale image.
-
-> **Note:** If your ESP has extra PSRAM, you can skip the AppDaemon step and render the full image instead — just enter the image URL directly in the `online_image` config.
+There are two essential steps to get this working: **Configuring and flashing ESPHome** and **creating a camera in Home Assistant** that serves the album cover of the song that's playing.
 
 **Overview:**
 
@@ -11,11 +9,9 @@ There are two essential steps to get this working: **Configuring and flashing ES
    - Adjust the config and fill in your credentials
    - Flash ESPHome onto the CYD
    - Add it to HA and enable "Allow this device to execute actions"
-3. **Album Cover Image (AppDaemon)**
-   - Install the AppDaemon add-on in HA
-   - Add the required Python libraries to the add-on config
-   - Add the script from `appdeamon/` to AppDaemon
-   - Restart the add-on and verify it's working
+3. **Album Cover (Generic Camera)**
+   - Create a Generic Camera that shows your player's artwork
+   - Put its entity ID into `config.yaml`
 
 ---
 
@@ -38,7 +34,7 @@ There are two ways to flash the config: locally via the command line, or through
 
 #### Method 1: Locally
 
-[Install ESPHome locally](https://esphome.io/guides/installing_esphome/), then plug in your CYD and make sure you can establish a serial connection (you may need to install UART drivers for your OS).
+[Install ESPHome locally](https://esphome.io/guides/installing_esphome/) in version **2026.3.0** (`pip install esphome==2026.3.0`; newer versions use LVGL 9, which breaks image scaling). Then plug in your CYD and make sure you can establish a serial connection (you may need to install UART drivers for your OS).
 
 Navigate to the `esphome/` directory and run:
 
@@ -57,7 +53,7 @@ Done. Easy as cake.
 
 ⚠️ **Before continuing:** You'll need to copy the config values from `esphome/config.yaml` into `esphome/cyd-jukebox-FULL.yaml` manually. At the top of that file there is a `substitutions` section — replace it with the one from your `config.yaml`. This ensures you're using your own values, not the example placeholders. ⚠️
 
-[Set up the ESPHome Device Builder add-on](https://esphome.io/guides/getting_started_hassio/), then:
+[Set up the ESPHome Device Builder add-on](https://esphome.io/guides/getting_started_hassio/). It has to build with ESPHome 2026.3.0 or older (see the note in the README). Then:
 
 1. Create a new empty device config inside ESPHome Device Builder
 2. Edit the YAML — remove anything pre-filled
@@ -87,196 +83,57 @@ To do that, head over to `esphome/cyd-playlists-page.yaml` if you flashed it loc
 
 Follow the steps outlined there to add your own playlists
 
-## Appdeamon (for the cover art)
+## Album cover (Generic Camera)
 
-My motivation for writing is sadly gone at this point, so I had the AI write me this part. I verified that it is accurate. You do not necessarily have to run Appdeamon, any way of running the media_resizer.py script and making the resulting image available online works in theory. In that case, you have to adjust the `url` key of the `online_image` config in the esphome config accordingly
+The jukebox shows the cover at full size (240×240). It downloads the artwork through a Home Assistant camera that always shows what the player is playing. HA scales the image down on request, and the ESP decodes it in small pieces, so no extra add-on is needed.
 
-Here is the revised reference document, with the hardcoded path removed, proper official links added, and a dedicated section on the HA OS path quirk.
+### Step 1 — Create the camera
 
----
+1. Go to **Settings → Devices & Services → Add Integration** and choose **Generic Camera**
+2. **Still image URL:** paste this template and replace `media_player.your_player` with your player's entity ID:
+   ```jinja
+   {% set p = state_attr('media_player.your_player','entity_picture') or '' %}{{ p if p.startswith('http') else 'http://127.0.0.1:8123' ~ p }}
+   ```
+   Players that report a relative picture path (starting with `/api/`) are fetched from HA itself. If your HA doesn't listen on port 8123, change the port in the template.
+3. Leave **Stream source** empty, set **Content type** to `image/jpeg`
+4. Under **Advanced**, enable **Limit refetch to URL change** so HA only downloads the artwork when the track's picture changes
+5. Finish the setup, then rename the new camera entity to something recognisable, e.g. `camera.your_player_cover`
 
-For writing the cyd-jukebox Installation Guide — AppDaemon section\_
+### Step 2 — Tell the jukebox about it
 
----
-
-### What this component does
-
-An AppDaemon app running inside Home Assistant that:
-
-- Watches a `media_player` entity for track changes (`media_title`, `entity_picture`, `entity_picture_local`)
-- Downloads the album artwork (from Spotify CDN or the local HA media proxy)
-- Resizes it to **64×64 JPEG** (the maximum an ESP32 without PSRAM can decode)
-- Saves it to HA's `www` folder, making it available at `/local/[media player entity]-media_thumb.jpg`
-
----
-
-### Step 1 — Install the AppDaemon add-on
-
-AppDaemon is a community add-on for Home Assistant, not a built-in integration. [github](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md)
-
-1. Go to **Settings → Add-ons → Add-on Store**
-2. Search for **"AppDaemon 4"** and install it
-3. Do **not** start it yet — configure it first
-
-> 📖 Official add-on docs: [github.com/hassio-addons/addon-appdaemon](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md)
-
-> ℹ️ The add-on is pre-configured to connect to HA automatically. You do **not** need to set `ha_url` or create a long-lived access token — despite what the official AppDaemon docs say. The add-on handles this via `!env_var SUPERVISOR_TOKEN`. [github](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md)
-
----
-
-### Step 2 — Add Python packages to the add-on
-
-The add-on config (reachable via the add-on's **Configuration** tab in the HA UI, under the "Options" section) supports installing extra Python packages. Add `Pillow` and `requests`: [github](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md)
+Put the camera's entity ID into `config.yaml`:
 
 ```yaml
-log_level: info
-python_packages:
-  - Pillow
-  - requests
+  cover_camera_entity: camera.your_player_cover
 ```
 
-![Appdeamon Config](assets/2026-03-14_15-06.png)
+Flash the jukebox again. The cover is fetched whenever the player's artwork changes.
 
-Save, then start (or restart) the add-on. It will install these on first boot.
+### Checking that it works
 
-> 📖 More on `python_packages`: [AppDaemon Community Add-on docs → Options](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md)
+- Open `http://<your-ha-url>/api/camera_proxy/camera.your_player_cover?width=240&height=240` while you're logged in to HA. You should see the current cover.
+- The device has two diagnostic buttons in HA: **Cover Reload** downloads the cover again, **Cover Test Pattern** shows colour bars instead.
+- In the device logs, every cover prints a line like `Cover 256x256 (1/1) -> 240 px (16->15 blocks): 10752 bytes, total 233 ms`.
 
----
+### Multiple devices
 
-### Step 3 — Finding the AppDaemon config folder on HA OS
+Each jukebox needs its own camera for its own media player. Create one Generic Camera per player (same template, different `media_player` entity) and set `cover_camera_entity` next to `media_player_entity` in each device's config.
 
-⚠️ **!This is the single most confusing part of the setup on Home Assistant OS!** ⚠️
-
-#### The problem
-
-AppDaemon's config files (`appdaemon.yaml`, `apps/`) are **not** stored in your main HA config folder. They live in a separate add-on config directory that is **not visible** in the File Editor by default. [github](https://github.com/AppDaemon/appdaemon/issues/1881)
-
-#### Where it actually is
-
-The add-on config lives under `/addon_configs/<addon-slug>/` on the host. The slug for AppDaemon 4 is different per installation — you can find yours by running this in an SSH terminal:
+If you flash several devices from one `config.yaml`, override the per-device values on the command line:
 
 ```bash
-find / -name "appdaemon.yaml" 2>/dev/null
+esphome run cyd-jukebox.yaml --device <ip> \
+  -s device_name cyd-jukebox-kitchen -s friendly_name "Kitchen Jukebox" \
+  -s media_player_entity media_player.kitchen \
+  -s cover_camera_entity camera.kitchen_cover
 ```
-
-This will return something like `/addon_configs/a0d7b954_appdaemon/appdaemon.yaml` — the path with the slug is specific to your installation.
-
-#### How to access it
-
-**Option A — Disable "Enforce Basepath" in File Editor:**
-
-1. Go to **Settings → Add-ons → File Editor → Configuration**
-2. Turn off **"Enforce Basepath"**
-3. Restart File Editor
-4. You can now navigate to `/addon_configs/<your-slug>/`
-
-**Option B — Symlink it (recommended for convenience):**
-Run this in your SSH terminal, replacing the slug with yours:
-
-```bash
-ln -s /addon_configs/<your-appdaemon-slug> /homeassistant/appdaemon
-```
-
-After this, `/homeassistant/appdaemon/` in File Editor points directly to AppDaemon's config. [github](https://github.com/hassio-addons/addon-appdaemon/issues/361)
-
-#### Path mapping summary
-
-| What you see in File Editor              | What AppDaemon sees at runtime                |
-| ---------------------------------------- | --------------------------------------------- |
-| `/homeassistant/`                        | `/homeassistant/` (HA config root)            |
-| `/homeassistant/www/`                    | `/homeassistant/www/` ← **write images here** |
-| AppDaemon config (via symlink or direct) | `/config/` inside the add-on container        |
-
-> ⚠️ Inside AppDaemon's Python code, HA's `www` folder is `/homeassistant/www/`, not `/config/www/`. The `/config/` path inside the add-on points to AppDaemon's own config, not to HA's config folder.
-
----
-
-### Step 4 — File structure
-
-Once set up, your AppDaemon folder should look like:
-
-```
-<appdaemon-config-dir>/
-├── appdaemon.yaml       ← auto-generated, leave mostly as-is
-└── apps/
-    ├── apps.yaml        ← register your app here
-    └── cyd-jukebox-album-art-generator.py  ← the app code
-```
-
-And the output image will be saved into to:
-
-```
-/homeassistant/www/
-└── [media player entity]-media_thumb.jpg     ← auto-created, served as /local/[media player entity]-media_thumb.jpg
-```
-
-> 📖 AppDaemon app structure docs: [appdaemon.readthedocs.io → Writing Apps](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html)
-
----
-
-### Step 5 — `apps.yaml`
-
-Located in `<appdaemon-config-dir>/apps/apps.yaml`
-
-Copy **the content of the file** found in this repo under `appdeamon/apps.py`
-
-- `module` matches the filename (`cyd-jukebox-album-art-generator.py`) without the `.py` [appdaemon.readthedocs](https://appdaemon.readthedocs.io/en/4.5.2/APPGUIDE.html)
-- `media_player` is the entity ID of your Music Assistant player
-- `base_url` is your HA URL — needed to resolve local `/api/media_player_proxy/...` artwork URLs
-- `output_file` is the filename under `/homeassistant/www/`
-
----
-
-### Step 6 — `cyd-jukebox-album-art-generator.py`
-
-Located in `<appdaemon-config-dir>/apps/cyd-jukebox-album-art-generator.py`
-
-Copy the script found in this repo under `appdeamon/cyd-jukebox-album-art-generator.py`
-
-AppDaemon **hot-reloads** the app automatically whenever you save changes to this file — no restart needed. [appdaemon.readthedocs](https://appdaemon.readthedocs.io/en/4.5.2/APPGUIDE.html)
-
----
-
-### Step 7 — Start & verify
-
-1. Restart the AppDaemon add-on (to install Pillow/requests)
-2. Open the **AppDaemon add-on → Log tab** and confirm:
-   ```
-   INFO AppDaemon: Starting apps: ['cyd-jukebox-album-art-generator']
-   INFO cyd-jukebox-album-art-generator: CYDJukeboxAlbumArtGenerator initialized for media_player.xxx
-   INFO cyd-jukebox-album-art-generator: Saved 64x64 cover art to /homeassistant/www/[media player entity]-media_thumb.jpg
-   ```
-3. Open in a browser: `http://<your-ha-url>/local/[media player entity]-media_thumb.jpg`
-
----
-
-### Multiple Devices
-
-If you want to have multiple cyd-jukebox devices active, simply add the script multiple times to the apps.py file of appdeamon.
-
-![Example apps.py](assets/2026-03-14_15-11.png)
 
 ### Troubleshooting
 
-| Symptom                                                 | Likely cause                                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Only `hello_world` running, your app absent from web UI | `apps.yaml` in wrong folder, or app fails to load (check logs for errors)                           |
-| `ImportError: No module named 'PIL'`                    | `python_packages` not saved or add-on not restarted after adding them                               |
-| `No class CYDJukeboxAlbumArtGenerator found`            | Class name typo or wrong filename                                                                   |
-| Image not updating on track change                      | Comment out the `chosen_new == chosen_old` guard temporarily to force-refresh on every state change |
-| URL resolution fails                                    | Check `base_url` in `apps.yaml` matches your exact HA URL and port                                  |
-
-To debug interactively, restart the add-on — it will run `initial_update` 5 seconds after boot and generate a thumbnail from whatever is currently playing.
-
----
-
-## Reference links
-
-| Topic                                                            | Link                                                                         |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| AppDaemon Community Add-on (install, `python_packages`, options) | https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md |
-| AppDaemon App Writing Guide (structure, `apps.yaml`, args)       | https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html                     |
-| AppDaemon API Reference (`listen_state`, `fire_event`, `run_in`) | https://appdaemon.readthedocs.io/en/latest/AD_API_REFERENCE.html             |
-| AppDaemon config location change in HA OS (v0.15+)               | https://github.com/AppDaemon/appdaemon/issues/1881                           |
-| HA static files / `www` folder                                   | https://www.home-assistant.io/integrations/http/#hosting-files               |
-| ESPHome HA API / `homeassistant` event platform                  | https://esphome.io/components/api.html                                       |
+| Symptom                               | Likely cause                                                                              |
+| ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Log says `HTTP 401`                   | `ha_token` in `secrets.yaml` is wrong or misses the `Bearer ` prefix                      |
+| Log says `HTTP 404`                   | `cover_camera_entity` doesn't match the camera's entity ID                                |
+| Log says `HTTP 500` or the URL fails  | The camera can't load the picture; check the still image template in the camera settings |
+| `unsupported JPEG (progressive?)`     | The artwork is a progressive JPEG, which the ESP's built-in decoder can't read            |
+| `Not enough RAM for the cover`        | Something else in the config uses a lot of RAM; the cover needs about 95 KB               |
