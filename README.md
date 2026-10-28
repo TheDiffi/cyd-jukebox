@@ -32,13 +32,14 @@ It's cheap, open, and built entirely on ESPHome. Works with any HA media player 
 
 ## Features
 
-- **Album art** — displays the current song's cover art in a cozy pixel art style (because more pixels would not fit into the ram)
+- **Album art** — displays the current song's cover at the full 240×240 pixels, or as chunky pixel art if you pick a pixel size in Home Assistant. Getting it to fit into the ESP's tiny RAM took some tricks: see [`components/cover_art`](components/cover_art)
+- **Pixel UI** — square buttons with stepped pixel corners and pixel icons drawn at exactly 2×, so every icon pixel is a crisp block
 - **Playback controls** — only what you really need. play/pause, skip, stop
 - **Volume control** — tap the volume button to reveal a slider
 - **Quick-play buttons** — have the best at your fingertips: Two configurable shortcuts to instantly start a favourite playlist
 - **Playlist browser** — a fine selection: Open a scrollable page with  playlists defined by you
 - **State sync** — surprisingly responsive: Reflects changes made from any other device in real time
-- **Auto-dim & sleep** — designed to not annoy you. Dims after a short idle period; turns off completely when the player is inactive. A tap wakes everything back up
+- **Auto-dim & sleep** — designed to not annoy you. Stays bright while music plays, dims when paused and left alone, and turns off completely when the player is inactive. A tap wakes everything back up
 - **Burn-in prevention** — runs pixel training automatically during the night so your display stays healthy
 
 ---
@@ -73,7 +74,7 @@ For mounting, a wall mount is recommended. Double-sided tape works fine. The com
 
 - [Home Assistant](https://www.home-assistant.io/) with a configured `media_player` entity
 - [ESPHome](https://esphome.io/) — either the [ESPHome Device Builder add-on](https://esphome.io/guides/getting_started_hassio/) (recommended) or the CLI
-- [AppDaemon](https://appdaemon.readthedocs.io/) HA add-on — for album art generation
+- A [Generic Camera](https://www.home-assistant.io/integrations/generic/) in HA that shows your player's artwork (see the [Installation Guide](Installation-Guide.md#album-cover-generic-camera))
 
 ---
 
@@ -81,18 +82,19 @@ For mounting, a wall mount is recommended. Double-sided tape works fine. The com
 
 ```
 cyd-jukebox/
+├── components/
+│   └── cover_art/                    # Streams the cover through the ESP32's ROM JPEG decoder into LVGL
 ├── esphome/
 │   ├── cyd-jukebox.yaml              # Main ESPHome config — start here
 │   ├── cyd-playlists-page.yaml       # Playlist browser UI (included by main config)
 │   ├── cyd-gradient-overlay.yaml     # Gradient overlay widget (included by main config)
 │   ├── config.yaml.example           # Template for your personal config — copy to config.yaml
 │   ├── secrets.yaml.example          # Template for your secrets file
+│   ├── icons/                        # Pixel icons as PNGs, made by icons/generate_icons.py
 │   └── fonts/
-│       ├── MemoryIcons-Regular.otf   # Pixel icon font (Apache 2.0)
+│       ├── MemoryIcons-Regular.otf   # Memory icon font (Apache 2.0), no longer used by the config
 │       └── LICENSE
-└── appdeamon/
-    ├── cyd-jukebox-album-art-generator.py   # AppDaemon app — fetches & processes album art
-    └── apps.py                              # AppDaemon config template
+└── appdeamon/                        # Old 60×60 album art generator, no longer needed
 ```
 
 ---
@@ -105,11 +107,11 @@ cyd-jukebox/
 
 **Short version:**
 
-1. Copy `esphome/config.yaml.example` → `esphome/config.yaml` and fill in your `media_player` entity and HA URL
+1. Copy `esphome/config.yaml.example` → `esphome/config.yaml` and fill in your `media_player` entity, HA URL and cover camera
 2. Copy `esphome/secrets.yaml.example` → `esphome/secrets.yaml` and fill in your credentials and secrets
 3. Flash `esphome/cyd-jukebox.yaml` to your CYD via ESPHome
 4. Add the device in Home Assistant and allow it to perform actions
-5. Set up the AppDaemon app for album art (see `appdeamon/`)
+5. Create a Generic Camera for the album cover (see the Installation Guide)
 
 ---
 
@@ -136,4 +138,4 @@ Things actively being worked on or planned:
 
 CYD Jukebox is MIT licensed — see [LICENSE](LICENSE).
 
-Uses [MemoryIcons](https://pictogrammers.com) by Pictogrammers, licensed under [Apache License 2.0](esphome/fonts/LICENSE).
+Uses [Memory icons](https://pictogrammers.com/library/memory/) by Pictogrammers, licensed under [Apache License 2.0](esphome/fonts/LICENSE). The skip and power icons are drawn in the same style.

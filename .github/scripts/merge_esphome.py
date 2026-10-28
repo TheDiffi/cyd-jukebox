@@ -99,7 +99,30 @@ def resolve(main_yaml_path: Path) -> dict:
 
     # Main config wins over packages
     final = deep_merge(merged, config)
+    use_github_components(final)
+    use_github_images(final)
     return final
+
+
+GITHUB_COMPONENTS_SOURCE = "github://TheDiffi/cyd-jukebox@master"
+GITHUB_RAW_ESPHOME_DIR = "https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/"
+
+
+def use_github_components(config: dict) -> None:
+    # The FULL file is used on its own (e.g. in ESPHome Device Builder), where the repo's
+    # components/ folder isn't next to it, so pull local components from GitHub instead
+    for entry in config.get("external_components", []):
+        source = entry.get("source")
+        if isinstance(source, dict) and source.get("type") == "local":
+            entry["source"] = GITHUB_COMPONENTS_SOURCE
+
+
+def use_github_images(config: dict) -> None:
+    # Same for the icon PNGs in esphome/icons/: load them from the repo instead
+    for entry in config.get("image", []):
+        file = entry.get("file")
+        if isinstance(file, str) and file.startswith("icons/"):
+            entry["file"] = {"type": "web", "url": GITHUB_RAW_ESPHOME_DIR + file}
 
 
 def main():

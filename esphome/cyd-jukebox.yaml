@@ -3,11 +3,70 @@
 packages:
   config: !include config.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [cover_art]
+
 esphome:
   name: "${device_name}"
   friendly_name: "${friendly_name}"
   min_version: 2025.11.0
   name_add_mac_suffix: false
+  on_boot:
+    # Pixel-style buttons: cut the outer corners of every bordered button and fill the
+    # inner diagonal, so the border reads as a stepped pixel frame. Drawn on top of
+    # LVGL's own rendering, so it costs no extra objects or RAM.
+    # Corner patterns, one cell per border width, seen from the top-left corner:
+    # x = cut to the page background, # = filled with the border colour.
+    - lambda: |-
+        struct Corner { int size; const char *cells; };
+        static const Corner SMALL = {2, "x."
+                                        ".#"};
+        static const Corner LARGE = {3, "xxx"
+                                        "x##"
+                                        "x#."};
+        static auto notch_corners = [](lv_event_t *e) {
+          lv_obj_t *obj = lv_event_get_target(e);
+          const auto *pattern = static_cast<const Corner *>(lv_event_get_user_data(e));
+          const lv_coord_t px = lv_obj_get_style_border_width(obj, LV_PART_MAIN);
+          if (px <= 0)
+            return;
+          lv_draw_ctx_t *ctx = lv_event_get_draw_ctx(e);
+          lv_draw_rect_dsc_t cut;
+          lv_draw_rect_dsc_init(&cut);
+          cut.bg_color = lv_color_black();  // the page background
+          lv_draw_rect_dsc_t step = cut;
+          step.bg_color = lv_obj_get_style_border_color(obj, LV_PART_MAIN);
+          const lv_area_t &c = obj->coords;
+          for (int corner = 0; corner != 4; corner++) {
+            const bool right = corner & 1, bottom = corner & 2;
+            for (int row = 0; row != pattern->size; row++) {
+              for (int col = 0; col != pattern->size; col++) {
+                const char cell = pattern->cells[row * pattern->size + col];
+                if (cell == '.')
+                  continue;
+                const lv_coord_t x = right ? c.x2 - (col + 1) * px + 1 : c.x1 + col * px;
+                const lv_coord_t y = bottom ? c.y2 - (row + 1) * px + 1 : c.y1 + row * px;
+                lv_area_t area = {x, y, (lv_coord_t) (x + px - 1), (lv_coord_t) (y + px - 1)};
+                lv_draw_rect(ctx, cell == 'x' ? &cut : &step, &area);
+              }
+            }
+          }
+        };
+        // The main row gets the rounder corners
+        std::function<void(lv_obj_t *)> add_to_buttons = [&](lv_obj_t *obj) {
+          if (lv_obj_check_type(obj, &lv_btn_class)) {
+            const bool main_row = obj == id(btn_vol) || obj == id(btn_play_pause) || obj == id(btn_skip);
+            lv_obj_add_event_cb(obj, notch_corners, LV_EVENT_DRAW_MAIN_END,
+                                (void *) (main_row ? &LARGE : &SMALL));
+          }
+          for (uint32_t i = 0; i != lv_obj_get_child_cnt(obj); i++)
+            add_to_buttons(lv_obj_get_child(obj, i));
+        };
+        for (auto *page : {id(canvas_1), id(canvas_playlists), id(canvas_idle)})
+          add_to_buttons(page->obj);
 
 esp32:
   board: esp32dev
@@ -86,39 +145,21 @@ font:
     size: 18
     bpp: 4
 
-  - file: "fonts/MemoryIcons-Regular.otf"
-    id: pixel_icon_font_massive
-    size: 38
-    bpp: 4
-    glyphs:
-      - "󰄵" # Play
-      - "󰄴" # Pause
-  - file: "fonts/MemoryIcons-Regular.otf"
-    id: pixel_icon_font
-    size: 24
-    bpp: 4
-    glyphs:
-      - "󰊌" # Power
-      - "󰊍" # Skip
-      - "󰄵" # Play
-      - "󰄴" # Pause
-      - "󰂄" # Vol+
-      - "󰃦" # Note
-      - "󰈙" # Back
-  - file: "fonts/MemoryIcons-Regular.otf"
-    id: pixel_icon_font_small
-    size: 16
-    bpp: 4
-    glyphs:
-      - "󰊇" # Cloud
-      - "󰃦" # Note
-      - "󰀎" # Navigate right
-  - file: "fonts/MemoryIcons-Regular.otf"
-    id: pixel_icon_font_huge
-    size: 80
-    bpp: 4
-    glyphs:
-      - "󰄵" # Play
+# Pixel icons: Memory icons rendered at exactly 2x (4x for play-large), so every icon
+# pixel is a crisp 2x2 block. Regenerate with icons/generate_icons.py.
+image:
+  - { id: icon_play, file: icons/play.png, type: BINARY }
+  - { id: icon_play_large, file: icons/play-large.png, type: BINARY }
+  - { id: icon_pause, file: icons/pause.png, type: BINARY }
+  - { id: icon_skip, file: icons/skip-next.png, type: BINARY }
+  - { id: icon_volume, file: icons/volume.png, type: BINARY }
+  - { id: icon_music_note, file: icons/music-note.png, type: BINARY }
+  - { id: icon_arrow_left_box, file: icons/arrow-left-box.png, type: BINARY }
+  # half-size icons (11x11 grid at 2x) for the bottom row and the power button
+  - { id: icon_cloud_small, file: icons/cloud-small.png, type: BINARY }
+  - { id: icon_music_note_small, file: icons/music-note-small.png, type: BINARY }
+  - { id: icon_arrow_right_small, file: icons/arrow-right-small.png, type: BINARY }
+  - { id: icon_power_small, file: icons/power-small.png, type: BINARY }
 
 globals:
   - id: media_active
@@ -153,18 +194,18 @@ script:
             - lvgl.widget.hide: { id: btn_mood_2 }
             - lvgl.widget.hide: { id: btn_open_playlists }
             - lvgl.widget.show: { id: lv_vol_slider }
-            - lvgl.label.update:
+            - lvgl.image.update:
                 id: lv_vol_icon
-                text: "󰃦"
+                src: icon_music_note
             - script.execute: vol_mode_timeout
           else:
             - lvgl.widget.show: { id: btn_mood_1 }
             - lvgl.widget.show: { id: btn_mood_2 }
             - lvgl.widget.show: { id: btn_open_playlists }
             - lvgl.widget.hide: { id: lv_vol_slider }
-            - lvgl.label.update:
+            - lvgl.image.update:
                 id: lv_vol_icon
-                text: "󰂄"
+                src: icon_volume
             - script.stop: vol_mode_timeout
 
   - id: vol_mode_timeout
@@ -194,7 +235,8 @@ script:
       - delay: 30s
       - if:
           condition:
-            lambda: "return !id(is_sleeping);"
+            # stay at full brightness while music is playing
+            lambda: 'return !id(is_sleeping) && id(mp_state).state != "playing";'
           then:
             - light.turn_on:
                 id: backlight
@@ -203,11 +245,12 @@ script:
                 id: is_dimmed
                 value: "true"
 
-  - id: fetch_album_art
+  - id: fetch_cover
     mode: restart
     then:
-      - delay: 500ms
-      - component.update: mp_album_art
+      # give HA a moment to switch the camera to the new artwork
+      - delay: 300ms
+      - cover_art.fetch: cover
 
   - id: select_playlist
     mode: restart
@@ -277,7 +320,19 @@ text_sensor:
             then:
               - script.stop: idle_sleep_timer
               - lvgl.resume:
-              - light.turn_on: backlight
+              - if:
+                  condition:
+                    lambda: 'return x == "playing";'
+                  then:
+                    # undo a dim that happened while paused
+                    - light.turn_on:
+                        id: backlight
+                        brightness: 100%
+                    - globals.set:
+                        id: is_dimmed
+                        value: "false"
+                  else:
+                    - light.turn_on: backlight
               - globals.set:
                   id: is_sleeping
                   value: "false"
@@ -289,11 +344,13 @@ text_sensor:
                   then:
                     - lvgl.page.show: canvas_idle
                     - script.execute: idle_sleep_timer
-        - lvgl.label.update:
-            id: lv_play_icon
-            text:
-              format: "%s"
-              args: ['(x == "playing") ? "󰄴" : "󰄵"'] # toggle play/pause icon
+        - if:
+            condition:
+              lambda: 'return x == "playing";'
+            then:
+              - lvgl.image.update: { id: lv_play_icon, src: icon_pause }
+            else:
+              - lvgl.image.update: { id: lv_play_icon, src: icon_play }
         - if:
             condition:
               lambda: 'return x == "unavailable" || x == "unknown" || x.empty();'
@@ -314,7 +371,19 @@ text_sensor:
             text:
               format: "%s"
               args: ["x.c_str()"]
-        - script.execute: fetch_album_art
+
+  # Only changes when the artwork does, so tracks of the same album don't download again
+  - platform: homeassistant
+    id: mp_picture
+    entity_id: ${media_player_entity}
+    attribute: entity_picture
+    internal: true
+    on_value:
+      - if:
+          condition:
+            lambda: "return !x.empty();"
+          then:
+            - script.execute: fetch_cover
 
   - platform: homeassistant
     id: mp_artist
@@ -335,6 +404,30 @@ sensor:
     entity_id: ${media_player_entity}
     attribute: volume_level
 
+  # Heap diagnostics. Byte-addressable RAM only: the debug component's heap sensors also
+  # count ~45 KB of IRAM that buffers can't use, which hides how tight memory really is.
+  - platform: template
+    name: "Heap Free"
+    unit_of_measurement: B
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: "return heap_caps_get_free_size(MALLOC_CAP_8BIT);"
+  - platform: template
+    name: "Heap Min Free"
+    unit_of_measurement: B
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: "return heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);"
+  - platform: template
+    name: "Heap Largest Block"
+    unit_of_measurement: B
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: "return heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);"
+
 interval:
   - interval: 30s
     then:
@@ -347,39 +440,55 @@ interval:
                 value: !lambda "return (int)(id(mp_volume).state * 100.0f);"
 
 # Album art ---
+# Full-size 240x240 cover, streamed from an HA camera that shows the player's artwork
+# (see components/cover_art). Strips are allocated at boot, so the RAM it needs is
+# reserved from the start.
 
-http_request:
-  useragent: esphome-cyd-jukebox
-  verify_ssl: false
+cover_art:
+  id: cover
+  container: lv_cover_box
+  url: "${ha_url}/api/camera_proxy/${cover_camera_entity}?width=240&height=240"
+  authorization: !secret ha_token
+  # Rows 195-239 sit under the opaque end of the gradient and the controls: no RAM for them
+  height: 195
+  fit: scale # scale: whole cover, slightly softened; crop: pixel-perfect, loses 8px per edge
+  dither: true
+  pixel_size: 1 # default; the "Cover Pixel Size" select below overrides it at runtime
 
-online_image:
-  - id: mp_album_art
-    url: "${ha_url}/local/${media_player_entity}-media_thumb.jpg"
-    format: jpeg
-    type: RGB565
-    update_interval: never
-    request_headers:
-      Authorization: !secret ha_token
-      Cache-Control: "no-cache"
-    on_download_finished:
-      then:
-        - lvgl.image.update:
-            id: lv_album_art
-            src: mp_album_art
-    on_error:
-      then:
-        - logger.log:
-            level: WARN
-            format: "Album art download/decoding failed"
+select:
+  # Draw the cover as N x N blocks for a pixel-art look (sizes that divide 240 evenly)
+  - platform: template
+    name: "Cover Pixel Size"
+    icon: mdi:grid
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "1"
+    options: ["1", "2", "3", "4", "5", "6", "8", "10", "12"]
+    on_value:
+      - lambda: "id(cover).set_pixel_size(atoi(x.c_str()));"
+      - cover_art.fetch: cover
+
+button:
+  - platform: template
+    name: "Cover Test Pattern"
+    entity_category: diagnostic
+    on_press:
+      - cover_art.test_pattern: cover
+  - platform: template
+    name: "Cover Reload"
+    entity_category: diagnostic
+    on_press:
+      - cover_art.fetch: cover
 
 # Display ---------------------------------------------------------
 
-# Config for rotation:
+# Config for rotation (done by the panel itself; software rotation costs a 15 KB buffer):
 #  vertical portrait (USB at bottom):
-#    rotation: 90
+#    display transform: swap_xy: true, mirror_x: true, mirror_y: true
 #    touchscreen transform: swap_xy: false, mirror_x: true, mirror_y: false
 #  vertical portrait (USB at top):
-#    rotation: 270
+#    display transform: swap_xy: true, mirror_x: false, mirror_y: false
 #    touchscreen transform: swap_xy: false, mirror_x: false, mirror_y: true
 
 color:
@@ -401,10 +510,13 @@ display:
     cs_pin: GPIO15
     dc_pin: GPIO2
     invert_colors: false
-    rotation: 90
+    transform:
+      swap_xy: true
+      mirror_x: true
+      mirror_y: true
     dimensions:
-      width: 320
-      height: 240
+      width: 240
+      height: 320
 
 touchscreen:
   platform: xpt2046
@@ -477,13 +589,22 @@ lvgl:
       text_color: 0xFFFFFF
       border_width: 2
       border_color: 0x333333
-      radius: 6
+      radius: 0 # the stepped pixel corners are drawn in on_boot
       shadow_width: 0
       outline_width: 0
       scroll_on_focus: true
       pressed:
         bg_color: 0x222222
         bg_opa: COVER
+
+  style_definitions:
+    # Icons are 1-bit masks; LVGL paints them in the recolor colour
+    - id: icon_bright
+      image_recolor: 0xFFFFFF
+      image_recolor_opa: COVER
+    - id: icon_dim
+      image_recolor: 0x3A3A3A
+      image_recolor_opa: COVER
 
   pages:
     - id: canvas_1
@@ -496,14 +617,16 @@ lvgl:
       widgets:
         # ── Album art ────────────────────────────────────────────────────
 
-        - image:
-            id: lv_album_art
+        # cover_art fills this with 16 image strips; keep it first so everything draws on top
+        - obj:
+            id: lv_cover_box
             x: 0
             y: 0
-            src: mp_album_art
-            zoom: 4.0
-            antialias: false
-            mode: REAL # widget bounds match the scaled size
+            width: 240
+            height: 240
+            bg_opa: TRANSP
+            pad_all: 0
+            scrollbar_mode: "OFF"
 
         # ── Gradient overlay ───────────────────────────────────────────────
         - !include cyd-gradient-overlay.yaml
@@ -512,7 +635,7 @@ lvgl:
         - label:
             id: lv_song_title
             x: 4
-            y: 165
+            y: 179
             width: 244
             long_mode: DOT
             text: "Title"
@@ -521,7 +644,7 @@ lvgl:
         - label:
             id: lv_artist_name
             x: 4
-            y: 146
+            y: 160
             width: 236
             long_mode: CLIP
             text: "Artist"
@@ -530,59 +653,61 @@ lvgl:
         # ── Power button (top-right, floating over image) ─────────────────
         - button:
             id: btn_power
-            x: 199
-            y: 3
-            width: 38
-            height: 38
+            x: 204
+            y: 4
+            width: 32
+            height: 32
             bg_color: 0x000000
-            pad_top: 5px
-            bg_opa: 35%
+            bg_opa: 50%
             border_width: 0
+            pad_all: 0
             on_click:
               - homeassistant.service:
                   service: media_player.media_stop
                   data:
                     entity_id: ${media_player_entity}
             widgets:
-              - label:
-                  text: "󰊌"
-                  text_font: pixel_icon_font
+              - image:
+                  src: icon_power_small
+                  styles: icon_bright
                   align: CENTER
 
         # ── Controls area background ──────────────────────────────────────
         - obj:
             x: 0
-            y: 215
+            y: 222
             width: 240
-            height: 68
+            height: 98
             bg_color: 0x000000
 
-        # ── Volume button ─────────────────────────────────────────────────
+        # ── Main row: volume / play-pause / skip ──────────────────────────
+        # Sizes are even so the 2px pixel grid of the icons and borders lines up
         - button:
             id: btn_vol
-            x: 20
-            y: 222
-            width: 54
-            height: 54
+            x: 16
+            y: 230
+            width: 56
+            height: 56
+            pad_all: 0
             on_click:
               - globals.set:
                   id: vol_mode
                   value: !lambda "return !id(vol_mode);"
               - script.execute: render_vol_ui
             widgets:
-              - label:
+              - image:
                   id: lv_vol_icon
-                  text: "󰂄"
-                  text_font: pixel_icon_font
+                  src: icon_volume
+                  styles: icon_bright
                   align: CENTER
 
-        # ── Play / Pause (center, slightly larger) ────────────────────────
         - button:
             id: btn_play_pause
             x: 90
-            y: 219
+            y: 228
             width: 60
             height: 60
+            pad_all: 0
             border_color: 0x555555
             on_click:
               - homeassistant.service:
@@ -590,52 +715,52 @@ lvgl:
                   data:
                     entity_id: ${media_player_entity}
             widgets:
-              - label:
+              - image:
                   id: lv_play_icon
-                  text: "󰄵"
-                  text_font: pixel_icon_font_massive
+                  src: icon_play
+                  styles: icon_bright
                   align: CENTER
 
-        # ── Skip next ─────────────────────────────────────────────────────
         - button:
             id: btn_skip
-            x: 166
-            y: 222
-            width: 54
-            height: 54
+            x: 168
+            y: 230
+            width: 56
+            height: 56
+            pad_all: 0
             on_click:
               - homeassistant.service:
                   service: media_player.media_next_track
                   data:
                     entity_id: ${media_player_entity}
             widgets:
-              - label:
-                  text: "󰊍"
-                  text_font: pixel_icon_font
+              - image:
+                  src: icon_skip
+                  styles: icon_bright
                   align: CENTER
 
-        # ── Quick-access playlist buttons ─────────────────────────────────
+        # ── Bottom row: quick-access playlists / playlist page ────────────
         # Two shortcut buttons for your favourite playlists.
         # Find Music Assistant library IDs in the MA web UI:
         # browse to your playlist and note the number in the URL.
         - button:
             id: btn_mood_1
-            x: 7
+            x: 8
             y: 294
             width: 70
             height: 24
+            pad_all: 0
             bg_opa: TRANSP
-            radius: 0
+            border_color: 0x222222
             on_click:
               - script.execute:
                   id: select_playlist
                   popup_text: "Chill" # change to your playlist name
-                  media_id: ${quickplay_button_chill_playlist_id} 
+                  media_id: ${quickplay_button_chill_playlist_id}
             widgets:
-              - label:
-                  text: "󰊇"
-                  text_font: pixel_icon_font_small
-                  text_color: 0x333333
+              - image:
+                  src: icon_cloud_small
+                  styles: icon_dim
                   align: CENTER
 
         - button:
@@ -644,44 +769,44 @@ lvgl:
             y: 294
             width: 70
             height: 24
+            pad_all: 0
             bg_opa: TRANSP
-            radius: 0
+            border_color: 0x222222
             on_click:
               - script.execute:
                   id: select_playlist
                   popup_text: "Pop" # change to your playlist name
                   media_id: ${quickplay_button_pop_playlist_id}
             widgets:
-              - label:
-                  text: "󰃦"
-                  text_font: pixel_icon_font_small
-                  text_color: 0x333333
+              - image:
+                  src: icon_music_note_small
+                  styles: icon_dim
                   align: CENTER
 
         - button:
             id: btn_open_playlists
-            x: 163
+            x: 162
             y: 294
             width: 70
             height: 24
+            pad_all: 0
             bg_opa: TRANSP
-            radius: 0
+            border_color: 0x222222
             on_click:
               - lvgl.page.show: canvas_playlists
             widgets:
-              - label:
-                  text: "󰀎"
-                  text_font: pixel_icon_font_small
-                  text_color: 0x333333
+              - image:
+                  src: icon_arrow_right_small
+                  styles: icon_dim
                   align: CENTER
 
         # ── Volume slider (shown when vol mode active, hidden otherwise) ──
         - slider:
             id: lv_vol_slider
-            x: 6
-            y: 297
-            width: 228
-            height: 18
+            x: 8
+            y: 296
+            width: 224
+            height: 20
             value: 50
             min_value: 0
             max_value: 100
@@ -761,9 +886,9 @@ lvgl:
                     entity_id: ${media_player_entity}
               - script.stop: idle_sleep_timer
             widgets:
-              - label:
-                  text: "󰄵"
-                  text_font: pixel_icon_font_huge
+              - image:
+                  src: icon_play_large
+                  styles: icon_bright
                   align: CENTER
 
         - label:
