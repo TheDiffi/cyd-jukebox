@@ -122,7 +122,7 @@ def use_github_images(config: dict) -> None:
     for entry in config.get("image", []):
         file = entry.get("file")
         if isinstance(file, str) and file.startswith("icons/"):
-            entry["file"] = {"type": "web", "url": GITHUB_RAW_ESPHOME_DIR + file}
+            entry["file"] = GITHUB_RAW_ESPHOME_DIR + file  # ESPHome downloads http(s) paths
 
 
 def main():
