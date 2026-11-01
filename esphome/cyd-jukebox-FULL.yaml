@@ -4,12 +4,46 @@ substitutions:
   device_name: cyd-jukebox
   friendly_name: CYD Jukebox
   quickplay_button_chill_playlist_id: library://playlist/15
-  quickplay_button_pop_playlist_name_id: library://playlist/16
+  quickplay_button_pop_playlist_id: library://playlist/16
+  cover_camera_entity: camera.your_player_cover
+external_components:
+- source: github://TheDiffi/cyd-jukebox@master
+  components:
+  - cover_art
 esphome:
   name: "${device_name}"
   friendly_name: "${friendly_name}"
   min_version: 2025.11.0
   name_add_mac_suffix: false
+  on_boot:
+  - lambda: "struct Corner { int size; const char *cells; };\nstatic const Corner\
+      \ SMALL = {2, \"x.\"\n                                \".#\"};\nstatic const\
+      \ Corner LARGE = {3, \"xxx\"\n                                \"x##\"\n    \
+      \                            \"x#.\"};\nstatic auto notch_corners = [](lv_event_t\
+      \ *e) {\n  lv_obj_t *obj = lv_event_get_target(e);\n  const auto *pattern =\
+      \ static_cast<const Corner *>(lv_event_get_user_data(e));\n  const lv_coord_t\
+      \ px = lv_obj_get_style_border_width(obj, LV_PART_MAIN);\n  if (px <= 0)\n \
+      \   return;\n  lv_draw_ctx_t *ctx = lv_event_get_draw_ctx(e);\n  lv_draw_rect_dsc_t\
+      \ cut;\n  lv_draw_rect_dsc_init(&cut);\n  cut.bg_color = lv_color_black(); \
+      \ // the page background\n  lv_draw_rect_dsc_t step = cut;\n  step.bg_color\
+      \ = lv_obj_get_style_border_color(obj, LV_PART_MAIN);\n  const lv_area_t &c\
+      \ = obj->coords;\n  for (int corner = 0; corner != 4; corner++) {\n    const\
+      \ bool right = corner & 1, bottom = corner & 2;\n    for (int row = 0; row !=\
+      \ pattern->size; row++) {\n      for (int col = 0; col != pattern->size; col++)\
+      \ {\n        const char cell = pattern->cells[row * pattern->size + col];\n\
+      \        if (cell == '.')\n          continue;\n        const lv_coord_t x =\
+      \ right ? c.x2 - (col + 1) * px + 1 : c.x1 + col * px;\n        const lv_coord_t\
+      \ y = bottom ? c.y2 - (row + 1) * px + 1 : c.y1 + row * px;\n        lv_area_t\
+      \ area = {x, y, (lv_coord_t) (x + px - 1), (lv_coord_t) (y + px - 1)};\n   \
+      \     lv_draw_rect(ctx, cell == 'x' ? &cut : &step, &area);\n      }\n    }\n\
+      \  }\n};\n// The main row gets the rounder corners\nstd::function<void(lv_obj_t\
+      \ *)> add_to_buttons = [&](lv_obj_t *obj) {\n  if (lv_obj_check_type(obj, &lv_btn_class))\
+      \ {\n    const bool main_row = obj == id(btn_vol) || obj == id(btn_play_pause)\
+      \ || obj == id(btn_skip);\n    lv_obj_add_event_cb(obj, notch_corners, LV_EVENT_DRAW_MAIN_END,\n\
+      \                        (void *) (main_row ? &LARGE : &SMALL));\n  }\n  for\
+      \ (uint32_t i = 0; i != lv_obj_get_child_cnt(obj); i++)\n    add_to_buttons(lv_obj_get_child(obj,\
+      \ i));\n};\nfor (auto *page : {id(canvas_1), id(canvas_playlists), id(canvas_idle)})\n\
+      \  add_to_buttons(page->obj);"
 esp32:
   board: esp32dev
   framework:
@@ -76,39 +110,40 @@ font:
   id: font_small
   size: 18
   bpp: 4
-- file: fonts/MemoryIcons-Regular.otf
-  id: pixel_icon_font_massive
-  size: 38
-  bpp: 4
-  glyphs:
-  - "\U000F0135"
-  - "\U000F0134"
-- file: fonts/MemoryIcons-Regular.otf
-  id: pixel_icon_font
-  size: 24
-  bpp: 4
-  glyphs:
-  - "\U000F028C"
-  - "\U000F028D"
-  - "\U000F0135"
-  - "\U000F0134"
-  - "\U000F0084"
-  - "\U000F00E6"
-  - "\U000F0219"
-- file: fonts/MemoryIcons-Regular.otf
-  id: pixel_icon_font_small
-  size: 16
-  bpp: 4
-  glyphs:
-  - "\U000F0287"
-  - "\U000F00E6"
-  - "\U000F000E"
-- file: fonts/MemoryIcons-Regular.otf
-  id: pixel_icon_font_huge
-  size: 80
-  bpp: 4
-  glyphs:
-  - "\U000F0135"
+image:
+- id: icon_play
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/play.png
+  type: BINARY
+- id: icon_play_large
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/play-large.png
+  type: BINARY
+- id: icon_pause
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/pause.png
+  type: BINARY
+- id: icon_skip
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/skip-next.png
+  type: BINARY
+- id: icon_volume
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/volume.png
+  type: BINARY
+- id: icon_music_note
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/music-note.png
+  type: BINARY
+- id: icon_arrow_left_box
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/arrow-left-box.png
+  type: BINARY
+- id: icon_cloud_small
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/cloud-small.png
+  type: BINARY
+- id: icon_music_note_small
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/music-note-small.png
+  type: BINARY
+- id: icon_arrow_right_small
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/arrow-right-small.png
+  type: BINARY
+- id: icon_power_small
+  file: https://raw.githubusercontent.com/TheDiffi/cyd-jukebox/master/esphome/icons/power-small.png
+  type: BINARY
 globals:
 - id: media_active
   type: bool
@@ -145,9 +180,9 @@ script:
           id: btn_open_playlists
       - lvgl.widget.show:
           id: lv_vol_slider
-      - lvgl.label.update:
+      - lvgl.image.update:
           id: lv_vol_icon
-          text: "\U000F00E6"
+          src: icon_music_note
       - script.execute: vol_mode_timeout
       else:
       - lvgl.widget.show:
@@ -158,9 +193,9 @@ script:
           id: btn_open_playlists
       - lvgl.widget.hide:
           id: lv_vol_slider
-      - lvgl.label.update:
+      - lvgl.image.update:
           id: lv_vol_icon
-          text: "\U000F0084"
+          src: icon_volume
       - script.stop: vol_mode_timeout
 - id: vol_mode_timeout
   mode: restart
@@ -187,7 +222,7 @@ script:
   - delay: 30s
   - if:
       condition:
-        lambda: return !id(is_sleeping);
+        lambda: return !id(is_sleeping) && id(mp_state).state != "playing";
       then:
       - light.turn_on:
           id: backlight
@@ -195,11 +230,11 @@ script:
       - globals.set:
           id: is_dimmed
           value: 'true'
-- id: fetch_album_art
+- id: fetch_cover
   mode: restart
   then:
-  - delay: 500ms
-  - component.update: mp_album_art
+  - delay: 300ms
+  - cover_art.fetch: cover
 - id: select_playlist
   mode: restart
   parameters:
@@ -261,7 +296,18 @@ text_sensor:
         then:
         - script.stop: idle_sleep_timer
         - lvgl.resume: null
-        - light.turn_on: backlight
+        - if:
+            condition:
+              lambda: return x == "playing";
+            then:
+            - light.turn_on:
+                id: backlight
+                brightness: 100%
+            - globals.set:
+                id: is_dimmed
+                value: 'false'
+            else:
+            - light.turn_on: backlight
         - globals.set:
             id: is_sleeping
             value: 'false'
@@ -273,12 +319,17 @@ text_sensor:
             then:
             - lvgl.page.show: canvas_idle
             - script.execute: idle_sleep_timer
-    - lvgl.label.update:
-        id: lv_play_icon
-        text:
-          format: '%s'
-          args:
-          - "(x == \"playing\") ? \"\U000F0134\" : \"\U000F0135\""
+    - if:
+        condition:
+          lambda: return x == "playing";
+        then:
+        - lvgl.image.update:
+            id: lv_play_icon
+            src: icon_pause
+        else:
+        - lvgl.image.update:
+            id: lv_play_icon
+            src: icon_play
     - if:
         condition:
           lambda: return x == "unavailable" || x == "unknown" || x.empty();
@@ -299,7 +350,17 @@ text_sensor:
           format: '%s'
           args:
           - x.c_str()
-    - script.execute: fetch_album_art
+- platform: homeassistant
+  id: mp_picture
+  entity_id: "${media_player_entity}"
+  attribute: entity_picture
+  internal: true
+  on_value:
+  - if:
+      condition:
+        lambda: return !x.empty();
+      then:
+      - script.execute: fetch_cover
 - platform: homeassistant
   id: mp_artist
   name: HA Media Artist
@@ -318,6 +379,27 @@ sensor:
   id: mp_volume
   entity_id: "${media_player_entity}"
   attribute: volume_level
+- platform: template
+  name: Heap Free
+  unit_of_measurement: B
+  accuracy_decimals: 0
+  entity_category: diagnostic
+  update_interval: 30s
+  lambda: return heap_caps_get_free_size(MALLOC_CAP_8BIT);
+- platform: template
+  name: Heap Min Free
+  unit_of_measurement: B
+  accuracy_decimals: 0
+  entity_category: diagnostic
+  update_interval: 30s
+  lambda: return heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
+- platform: template
+  name: Heap Largest Block
+  unit_of_measurement: B
+  accuracy_decimals: 0
+  entity_category: diagnostic
+  update_interval: 30s
+  lambda: return heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 interval:
 - interval: 30s
   then:
@@ -328,28 +410,47 @@ interval:
       - lvgl.slider.update:
           id: lv_vol_slider
           value: !lambda "return (int)(id(mp_volume).state * 100.0f);"
-http_request:
-  useragent: esphome-cyd-jukebox
-  verify_ssl: false
-online_image:
-- id: mp_album_art
-  url: "${ha_url}/local/${media_player_entity}-media_thumb.jpg"
-  format: jpeg
-  type: RGB565
-  update_interval: never
-  request_headers:
-    Authorization: !secret ha_token
-    Cache-Control: no-cache
-  on_download_finished:
-    then:
-    - lvgl.image.update:
-        id: lv_album_art
-        src: mp_album_art
-  on_error:
-    then:
-    - logger.log:
-        level: WARN
-        format: Album art download/decoding failed
+cover_art:
+  id: cover
+  container: lv_cover_box
+  url: "${ha_url}/api/camera_proxy/${cover_camera_entity}?width=240&height=240"
+  authorization: !secret ha_token
+  height: 195
+  fit: scale
+  dither: true
+  pixel_size: 1
+select:
+- platform: template
+  name: Cover Pixel Size
+  icon: mdi:grid
+  entity_category: config
+  optimistic: true
+  restore_value: true
+  initial_option: '1'
+  options:
+  - '1'
+  - '2'
+  - '3'
+  - '4'
+  - '5'
+  - '6'
+  - '8'
+  - '10'
+  - '12'
+  on_value:
+  - lambda: id(cover).set_pixel_size(atoi(x.c_str()));
+  - cover_art.fetch: cover
+button:
+- platform: template
+  name: Cover Test Pattern
+  entity_category: diagnostic
+  on_press:
+  - cover_art.test_pattern: cover
+- platform: template
+  name: Cover Reload
+  entity_category: diagnostic
+  on_press:
+  - cover_art.fetch: cover
 color:
 - id: COLOR_WHITE
   red: 100%
@@ -368,10 +469,13 @@ display:
   cs_pin: GPIO15
   dc_pin: GPIO2
   invert_colors: false
-  rotation: 90
+  transform:
+    swap_xy: true
+    mirror_x: true
+    mirror_y: true
   dimensions:
-    width: 320
-    height: 240
+    width: 240
+    height: 320
 touchscreen:
   platform: xpt2046
   id: my_touchscreen
@@ -438,13 +542,20 @@ lvgl:
       text_color: 16777215
       border_width: 2
       border_color: 3355443
-      radius: 6
+      radius: 0
       shadow_width: 0
       outline_width: 0
       scroll_on_focus: true
       pressed:
         bg_color: 2236962
         bg_opa: COVER
+  style_definitions:
+  - id: icon_bright
+    image_recolor: 16777215
+    image_recolor_opa: COVER
+  - id: icon_dim
+    image_recolor: 3815994
+    image_recolor_opa: COVER
   pages:
   - id: canvas_1
     bg_color: 0
@@ -454,17 +565,18 @@ lvgl:
     - script.execute: render_vol_ui
     - lvgl.widget.hide: lv_mood_overlay
     widgets:
-    - image:
-        id: lv_album_art
+    - obj:
+        id: lv_cover_box
         x: 0
         y: 0
-        src: mp_album_art
-        zoom: 4.0
-        antialias: false
-        mode: REAL
+        width: 240
+        height: 240
+        bg_opa: TRANSP
+        pad_all: 0
+        scrollbar_mode: 'OFF'
     - obj:
         x: 0
-        y: 125
+        y: 139
         width: 240
         height: 95
         bg_opa: TRANSP
@@ -474,104 +586,104 @@ lvgl:
             x: 0
             y: 0
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 1%
         - obj:
             x: 0
-            y: 5
+            y: 4
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 2%
         - obj:
             x: 0
-            y: 10
+            y: 8
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 6%
         - obj:
             x: 0
-            y: 15
+            y: 12
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 14%
         - obj:
             x: 0
-            y: 20
+            y: 16
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 23%
         - obj:
             x: 0
-            y: 25
+            y: 20
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 33%
         - obj:
             x: 0
-            y: 30
+            y: 24
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 44%
         - obj:
             x: 0
-            y: 35
+            y: 28
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 56%
         - obj:
             x: 0
-            y: 40
+            y: 32
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 67%
         - obj:
             x: 0
-            y: 45
+            y: 36
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 77%
         - obj:
             x: 0
-            y: 50
+            y: 40
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 82%
         - obj:
             x: 0
-            y: 55
+            y: 44
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 91%
         - obj:
             x: 0
-            y: 60
+            y: 48
             width: 240
-            height: 5
+            height: 4
             bg_color: 0
             bg_opa: 96%
         - obj:
             x: 0
-            y: 65
+            y: 52
             width: 240
-            height: 30
+            height: 43
             bg_color: 0
             bg_opa: 100%
     - label:
         id: lv_song_title
         x: 4
-        y: 165
+        y: 179
         width: 244
         long_mode: DOT
         text: Title
@@ -579,60 +691,62 @@ lvgl:
     - label:
         id: lv_artist_name
         x: 4
-        y: 146
+        y: 160
         width: 236
         long_mode: CLIP
         text: Artist
         text_font: font_small
     - button:
         id: btn_power
-        x: 199
-        y: 3
-        width: 38
-        height: 38
+        x: 204
+        y: 4
+        width: 32
+        height: 32
         bg_color: 0
-        pad_top: 5px
-        bg_opa: 35%
+        bg_opa: 50%
         border_width: 0
+        pad_all: 0
         on_click:
         - homeassistant.service:
             service: media_player.media_stop
             data:
               entity_id: "${media_player_entity}"
         widgets:
-        - label:
-            text: "\U000F028C"
-            text_font: pixel_icon_font
+        - image:
+            src: icon_power_small
+            styles: icon_bright
             align: CENTER
     - obj:
         x: 0
-        y: 215
+        y: 222
         width: 240
-        height: 68
+        height: 98
         bg_color: 0
     - button:
         id: btn_vol
-        x: 20
-        y: 222
-        width: 54
-        height: 54
+        x: 16
+        y: 230
+        width: 56
+        height: 56
+        pad_all: 0
         on_click:
         - globals.set:
             id: vol_mode
             value: !lambda "return !id(vol_mode);"
         - script.execute: render_vol_ui
         widgets:
-        - label:
+        - image:
             id: lv_vol_icon
-            text: "\U000F0084"
-            text_font: pixel_icon_font
+            src: icon_volume
+            styles: icon_bright
             align: CENTER
     - button:
         id: btn_play_pause
         x: 90
-        y: 219
+        y: 228
         width: 60
         height: 60
+        pad_all: 0
         border_color: 5592405
         on_click:
         - homeassistant.service:
@@ -640,45 +754,46 @@ lvgl:
             data:
               entity_id: "${media_player_entity}"
         widgets:
-        - label:
+        - image:
             id: lv_play_icon
-            text: "\U000F0135"
-            text_font: pixel_icon_font_massive
+            src: icon_play
+            styles: icon_bright
             align: CENTER
     - button:
         id: btn_skip
-        x: 166
-        y: 222
-        width: 54
-        height: 54
+        x: 168
+        y: 230
+        width: 56
+        height: 56
+        pad_all: 0
         on_click:
         - homeassistant.service:
             service: media_player.media_next_track
             data:
               entity_id: "${media_player_entity}"
         widgets:
-        - label:
-            text: "\U000F028D"
-            text_font: pixel_icon_font
+        - image:
+            src: icon_skip
+            styles: icon_bright
             align: CENTER
     - button:
         id: btn_mood_1
-        x: 7
+        x: 8
         y: 294
         width: 70
         height: 24
+        pad_all: 0
         bg_opa: TRANSP
-        radius: 0
+        border_color: 2236962
         on_click:
         - script.execute:
             id: select_playlist
             popup_text: Chill
             media_id: "${quickplay_button_chill_playlist_id}"
         widgets:
-        - label:
-            text: "\U000F0287"
-            text_font: pixel_icon_font_small
-            text_color: 3355443
+        - image:
+            src: icon_cloud_small
+            styles: icon_dim
             align: CENTER
     - button:
         id: btn_mood_2
@@ -686,41 +801,41 @@ lvgl:
         y: 294
         width: 70
         height: 24
+        pad_all: 0
         bg_opa: TRANSP
-        radius: 0
+        border_color: 2236962
         on_click:
         - script.execute:
             id: select_playlist
             popup_text: Pop
             media_id: "${quickplay_button_pop_playlist_id}"
         widgets:
-        - label:
-            text: "\U000F00E6"
-            text_font: pixel_icon_font_small
-            text_color: 3355443
+        - image:
+            src: icon_music_note_small
+            styles: icon_dim
             align: CENTER
     - button:
         id: btn_open_playlists
-        x: 163
+        x: 162
         y: 294
         width: 70
         height: 24
+        pad_all: 0
         bg_opa: TRANSP
-        radius: 0
+        border_color: 2236962
         on_click:
         - lvgl.page.show: canvas_playlists
         widgets:
-        - label:
-            text: "\U000F000E"
-            text_font: pixel_icon_font_small
-            text_color: 3355443
+        - image:
+            src: icon_arrow_right_small
+            styles: icon_dim
             align: CENTER
     - slider:
         id: lv_vol_slider
-        x: 6
-        y: 297
-        width: 228
-        height: 18
+        x: 8
+        y: 296
+        width: 224
+        height: 20
         value: 50
         min_value: 0
         max_value: 100
@@ -791,15 +906,17 @@ lvgl:
         widgets:
         - button:
             id: btn_playlist_back
-            width: 40
+            width: 44
+            height: 44
+            pad_all: 0
             bg_opa: TRANSP
             border_width: 0
             on_click:
             - lvgl.page.show: canvas_1
             widgets:
-            - label:
-                text: "\U000F0219"
-                text_font: pixel_icon_font
+            - image:
+                src: icon_arrow_left_box
+                styles: icon_bright
                 align: CENTER
         - label:
             text: Playlists
@@ -869,9 +986,9 @@ lvgl:
               entity_id: "${media_player_entity}"
         - script.stop: idle_sleep_timer
         widgets:
-        - label:
-            text: "\U000F0135"
-            text_font: pixel_icon_font_huge
+        - image:
+            src: icon_play_large
+            styles: icon_bright
             align: CENTER
     - label:
         id: lv_player_not_found_msg
